@@ -1,52 +1,54 @@
 import * as User from '../models/userModel.js';
+import { verifyToken, clearAuthCookie } from '../utils/token.js';
+import { TOKEN_COOKIE } from '../config.js';
 
-// У шаблони передаємо лише безпечні поля (без пароля).
-const publicUser = ({ id, username, role }) => ({ id, username, role });
+// У шаблони передаємо лише безпечні поля.
+export const publicUser = ({ id, username, role }) => ({ id, username, role });
+
+/** Токен береться з заголовка Authorization: Bearer ... або з httpOnly-cookie. */
+function readToken(req) {
+  const header = req.headers.authorization;
+  if (header && header.startsWith('Bearer ')) return header.slice(7);
+  return req.cookies?.[TOKEN_COOKIE];
+}
+
+/** Браузер явно просить HTML-сторінку (а не curl/Postman). */
+const wantsPage = req => (req.headers.accept || '').includes('text/html');
 
 /**
- * Автентифікація + сесії.
- * 1) Якщо в сесії вже є userId — користувач автентифікований.
- * 2) Інакше очікуємо заголовок Authorization: Basic base64(username:password).
- *    Після успішного входу userId зберігається в req.session,
- *    тому наступні запити можуть іти лише з cookie сесії.
+ * М'яка ідентифікація (діє глобально): якщо є дійсний JWT — заповнює req.user
+ * та res.locals.currentUser, інакше просто йде далі. Нічого не блокує.
  */
-export function authenticate(req, res, next) {
-  // 1. Сесія
-  if (req.session.userId) {
-    const sessionUser = User.getById(req.session.userId);
-    if (sessionUser) {
-      req.user = sessionUser;
-      res.locals.currentUser = publicUser(sessionUser); // доступний у PUG/EJS-шаблонах
-      return next();
+export function identify(req, res, next) {
+  res.locals.currentUser = null;
+
+  const token = readToken(req);
+  if (!token) return next();
+
+  try {
+    const payload = verifyToken(token);
+    const user = User.getById(Number(payload.sub));
+    if (user) {
+      req.user = user;
+      res.locals.currentUser = publicUser(user);
     }
-    // користувача видалили — сесія застаріла
-    delete req.session.userId;
+  } catch {
+    // токен недійсний або прострочений — прибираємо cookie
+    clearAuthCookie(res);
   }
-
-  // 2. Basic-заголовок
-  const header = req.headers.authorization;
-  if (!header || !header.startsWith('Basic ')) {
-    res.set('WWW-Authenticate', 'Basic realm="express-middleware-app"');
-    return res
-      .status(401)
-      .send('Доступ заборонено. Передайте заголовок Authorization: Basic base64(username:password).');
-  }
-
-  const decoded = Buffer.from(header.slice(6), 'base64').toString('utf8');
-  const separator = decoded.indexOf(':');
-  const username = separator === -1 ? decoded : decoded.slice(0, separator);
-  const password = separator === -1 ? '' : decoded.slice(separator + 1);
-
-  const user = User.getByUsername(username);
-  if (!user || user.password !== password) {
-    res.set('WWW-Authenticate', 'Basic realm="express-middleware-app"');
-    return res.status(401).send('Невірний логін або пароль.');
-  }
-
-  req.session.userId = user.id;
-  req.user = user;
-  res.locals.currentUser = publicUser(user); // доступний у PUG/EJS-шаблонах
   next();
+}
+
+/** Сувора перевірка для захищених маршрутів: без дійсного JWT доступу немає. */
+export function authenticate(req, res, next) {
+  if (req.user) return next();
+
+  if (wantsPage(req)) {
+    return res.redirect(`/login?next=${encodeURIComponent(req.originalUrl)}`);
+  }
+  res
+    .status(401)
+    .send('Доступ заборонено. Увійдіть через POST /login або передайте заголовок Authorization: Bearer <token>.');
 }
 
 /** Дозволяє доступ лише користувачам із вказаною роллю. */

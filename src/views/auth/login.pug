@@ -1,0 +1,22 @@
+extends ../layout
+
+block content
+  .card.auth-card
+    h1 Вхід
+    p.subtitle Увійдіть, щоб переглядати користувачів і статті.
+
+    include ../includes/errors
+
+    form.form(method="post", action="/login")
+      input(type="hidden", name="next", value=redirectTo)
+      .field
+        label(for="username") Логін
+        input#username(type="text", name="username", value=username, required, autofocus, autocomplete="username")
+      .field
+        label(for="password") Пароль
+        input#password(type="password", name="password", required, autocomplete="current-password")
+      button.btn.btn-primary.btn-block(type="submit") Увійти
+
+    p.auth-switch
+      | Немає акаунта? 
+      a(href="/register") Зареєструватися

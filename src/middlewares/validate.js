@@ -1,3 +1,5 @@
+import { renderAuthPage } from '../utils/authPage.js';
+
 const ROLES = ['user', 'admin'];
 
 /** Перевіряє, що параметр маршруту (наприклад :userId) — додатне ціле число. */
@@ -42,3 +44,32 @@ export function validateArticleBody(req, res, next) {
   }
   next();
 }
+
+/**
+ * Валідація тіла для /register і /login.
+ * Для HTML-форм повертає сторінку з помилками (400), для API — текст.
+ */
+export const validateAuthBody = mode => (req, res, next) => {
+  const { username, password } = req.body ?? {};
+  const errors = [];
+
+  if (mode === 'register') {
+    if (!isNonEmptyString(username, 3)) errors.push('Логін: обов\'язковий, мінімум 3 символи');
+    if (!isNonEmptyString(password, 4)) errors.push('Пароль: обов\'язковий, мінімум 4 символи');
+  } else {
+    if (!isNonEmptyString(username, 1)) errors.push('Вкажіть логін');
+    if (!isNonEmptyString(password, 1)) errors.push('Вкажіть пароль');
+  }
+
+  if (errors.length === 0) return next();
+
+  if (req.is('urlencoded')) {
+    return renderAuthPage(res, mode, {
+      status: 400,
+      errors,
+      username: typeof username === 'string' ? username : '',
+      next: req.body?.next,
+    });
+  }
+  res.status(400).send(`Помилка валідації:\n${errors.join('\n')}`);
+};

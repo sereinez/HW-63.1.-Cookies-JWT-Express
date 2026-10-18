@@ -1,15 +1,21 @@
 export function home(req, res) {
   res.send(
     [
-      'Ласкаво просимо до Express-сервера з мідлварами та шаблонізаторами!',
+      'Ласкаво просимо до Express-сервера (статика, cookies, JWT)!',
       '',
-      'HTML-сторінки:',
-      'GET    /users                (PUG)',
-      'GET    /users/:userId        (PUG)',
-      'GET    /articles             (EJS)',
-      'GET    /articles/:articleId  (EJS)',
+      'Автентифікація:',
+      'GET    /login, /register     (сторінки, PUG)',
+      'POST   /register, /login, /logout',
+      'GET    /me                   (захищений)',
       '',
-      'Текстові маршрути (зміна даних):',
+      'Налаштування (cookie):',
+      'GET    /theme, POST /theme',
+      '',
+      'Захищені HTML-сторінки:',
+      'GET    /users, /users/:userId        (PUG)',
+      'GET    /articles, /articles/:articleId (EJS)',
+      '',
+      'Захищені текстові маршрути:',
       'POST   /users, PUT /users/:userId, DELETE /users/:userId',
       'POST   /articles, PUT /articles/:articleId, DELETE /articles/:articleId',
     ].join('\n')

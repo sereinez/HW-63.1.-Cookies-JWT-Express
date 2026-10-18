@@ -1,7 +1,10 @@
-// Модель користувачів (зберігання в пам'яті — для навчального проєкту достатньо).
+import bcrypt from 'bcryptjs';
+
+// Модель користувачів (зберігання в пам'яті).
+// Паролі зберігаються ТІЛЬКИ у вигляді bcrypt-хешу (passwordHash).
 const users = [
-  { id: 1, username: 'admin', password: 'admin123', role: 'admin' },
-  { id: 2, username: 'user', password: 'user123', role: 'user' },
+  { id: 1, username: 'admin', passwordHash: bcrypt.hashSync('admin123', 10), role: 'admin' },
+  { id: 2, username: 'user', passwordHash: bcrypt.hashSync('user123', 10), role: 'user' },
 ];
 let nextId = 3;
 
@@ -12,8 +15,8 @@ export const getById = id => users.find(user => user.id === id);
 export const getByUsername = username =>
   users.find(user => user.username === username);
 
-export function create({ username, password, role = 'user' }) {
-  const user = { id: nextId++, username, password, role };
+export function create({ username, passwordHash, role = 'user' }) {
+  const user = { id: nextId++, username, passwordHash, role };
   users.push(user);
   return user;
 }

@@ -1,0 +1,23 @@
+extends ../layout
+
+block content
+  .card.auth-card
+    h1 Реєстрація
+    p.subtitle Створіть акаунт — після реєстрації ви одразу увійдете в систему.
+
+    include ../includes/errors
+
+    form.form(method="post", action="/register")
+      .field
+        label(for="username") Логін
+        input#username(type="text", name="username", value=username, required, minlength="3", autofocus, autocomplete="username")
+        small.hint Мінімум 3 символи
+      .field
+        label(for="password") Пароль
+        input#password(type="password", name="password", required, minlength="4", autocomplete="new-password")
+        small.hint Мінімум 4 символи
+      button.btn.btn-primary.btn-block(type="submit") Зареєструватися
+
+    p.auth-switch
+      | Вже є акаунт? 
+      a(href="/login") Увійти

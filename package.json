@@ -1,7 +1,7 @@
 {
-  "name": "express-templates-app",
+  "name": "express-jwt-app",
   "version": "1.0.0",
-  "description": "Express-сервер із мідлварами та шаблонізаторами PUG (users) і EJS (articles), MVC",
+  "description": "Express: статика (favicon), cookies (тема), JWT-авторизація, PUG + EJS, MVC",
   "type": "module",
   "main": "src/server.js",
   "scripts": {
@@ -9,9 +9,12 @@
     "dev": "node --watch src/server.js"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
     "ejs": "^3.1.10",
     "express": "^4.21.2",
-    "express-session": "^1.18.1",
-    "pug": "^3.0.4"
+    "jsonwebtoken": "^9.0.3",
+    "pug": "^3.0.4",
+    "serve-favicon": "^2.5.1"
   }
 }

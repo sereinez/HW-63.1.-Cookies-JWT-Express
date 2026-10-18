@@ -1,13 +1,50 @@
+/* ---------- Змінні: світла тема (за замовчуванням) ---------- */
 :root {
   --bg: #f4f6fb;
   --surface: #ffffff;
+  --surface-alt: #f9fafb;
+  --hover: #fafbff;
   --text: #1f2937;
+  --text-soft: #4b5563;
   --muted: #6b7280;
   --primary: #4f46e5;
+  --primary-hover: #4338ca;
   --primary-soft: #eef2ff;
   --border: #e5e7eb;
+  --danger-bg: #fee2e2;
+  --danger-fg: #b91c1c;
+  --ok-bg: #dcfce7;
+  --ok-fg: #15803d;
+  --badge-bg: #e5e7eb;
+  --badge-fg: #374151;
   --radius: 12px;
   --shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 8px 24px rgba(15, 23, 42, 0.04);
+  --shadow-hover: 0 4px 12px rgba(15, 23, 42, 0.1);
+  color-scheme: light;
+}
+
+/* ---------- Темна тема: вмикається атрибутом <html data-theme="dark"> ---------- */
+[data-theme="dark"] {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --surface-alt: #172033;
+  --hover: #243247;
+  --text: #e2e8f0;
+  --text-soft: #cbd5e1;
+  --muted: #94a3b8;
+  --primary: #818cf8;
+  --primary-hover: #a5b4fc;
+  --primary-soft: #312e81;
+  --border: #334155;
+  --danger-bg: #7f1d1d;
+  --danger-fg: #fecaca;
+  --ok-bg: #14532d;
+  --ok-fg: #bbf7d0;
+  --badge-bg: #334155;
+  --badge-fg: #e2e8f0;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-hover: 0 4px 14px rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -21,6 +58,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 a { color: var(--primary); text-decoration: none; }
@@ -39,10 +77,11 @@ a:hover { text-decoration: underline; }
   max-width: 960px;
   margin: 0 auto;
   padding: 0 20px;
-  height: 60px;
+  min-height: 60px;
   display: flex;
   align-items: center;
-  gap: 24px;
+  flex-wrap: wrap;
+  gap: 8px 20px;
 }
 
 .brand { font-weight: 700; font-size: 1.1rem; color: var(--text); }
@@ -62,6 +101,9 @@ a:hover { text-decoration: underline; }
   text-decoration: none;
 }
 
+.nav-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.inline-form { margin: 0; }
+
 .user-chip {
   display: flex;
   align-items: center;
@@ -69,6 +111,27 @@ a:hover { text-decoration: underline; }
   font-size: 0.9rem;
   color: var(--muted);
 }
+
+/* ---------- Кнопки ---------- */
+.btn {
+  display: inline-block;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-align: center;
+  line-height: 1.5;
+}
+.btn:hover { text-decoration: none; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-hover); }
+[data-theme="dark"] .btn-primary { color: #0f172a; }
+.btn-ghost { background: transparent; color: var(--text); border-color: var(--border); }
+.btn-ghost:hover { background: var(--primary-soft); color: var(--primary); }
+.btn-block { display: block; width: 100%; padding: 10px 14px; font-size: 1rem; }
 
 /* ---------- Контент ---------- */
 .container {
@@ -99,7 +162,7 @@ h2 { margin: 32px 0 12px; font-size: 1.25rem; }
 .table th,
 .table td { padding: 14px 18px; text-align: left; }
 .table thead th {
-  background: #f9fafb;
+  background: var(--surface-alt);
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -107,7 +170,7 @@ h2 { margin: 32px 0 12px; font-size: 1.25rem; }
   border-bottom: 1px solid var(--border);
 }
 .table tbody tr + tr td { border-top: 1px solid var(--border); }
-.table tbody tr:hover { background: #fafbff; }
+.table tbody tr:hover { background: var(--hover); }
 
 /* ---------- Бейджі ---------- */
 .badge {
@@ -116,11 +179,11 @@ h2 { margin: 32px 0 12px; font-size: 1.25rem; }
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 600;
-  background: #e5e7eb;
-  color: #374151;
+  background: var(--badge-bg);
+  color: var(--badge-fg);
 }
-.badge-admin { background: #fee2e2; color: #b91c1c; }
-.badge-user { background: #dcfce7; color: #15803d; }
+.badge-admin { background: var(--danger-bg); color: var(--danger-fg); }
+.badge-user { background: var(--ok-bg); color: var(--ok-fg); }
 .badge-id { background: var(--primary-soft); color: var(--primary); }
 
 /* ---------- Картки ---------- */
@@ -137,12 +200,9 @@ h2 { margin: 32px 0 12px; font-size: 1.25rem; }
   padding: 22px;
 }
 .cards .card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
-.cards .card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
-}
+.cards .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
 .card h2 { margin: 0 0 8px; font-size: 1.15rem; }
-.excerpt { margin: 0 0 14px; color: #4b5563; }
+.excerpt { margin: 0 0 14px; color: var(--text-soft); }
 .meta { margin: 0; font-size: 0.9rem; color: var(--muted); }
 
 .details .details-head {
@@ -174,6 +234,33 @@ h2 { margin: 32px 0 12px; font-size: 1.25rem; }
 .link-list { padding-left: 20px; }
 .link-list li { margin: 6px 0; }
 
+/* ---------- Форми входу / реєстрації ---------- */
+.auth-card { max-width: 420px; margin: 24px auto; }
+
+.form { display: flex; flex-direction: column; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { font-weight: 500; font-size: 0.9rem; }
+.field input {
+  font: inherit;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-alt);
+  color: var(--text);
+}
+.field input:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+.hint { color: var(--muted); font-size: 0.8rem; }
+
+.alert { list-style: none; padding: 12px 16px; margin: 0 0 16px; border-radius: 8px; }
+.alert li + li { margin-top: 4px; }
+.alert-error { background: var(--danger-bg); color: var(--danger-fg); }
+
+.auth-switch { margin: 20px 0 0; text-align: center; color: var(--muted); font-size: 0.9rem; }
+
 /* ---------- Футер ---------- */
 .footer {
   text-align: center;
@@ -185,8 +272,9 @@ h2 { margin: 32px 0 12px; font-size: 1.25rem; }
 
 /* ---------- Мобільні пристрої ---------- */
 @media (max-width: 600px) {
-  .navbar-inner { gap: 12px; padding: 0 12px; }
+  .navbar-inner { gap: 8px 12px; padding: 8px 12px; }
   .brand { display: none; }
+  .nav-links { flex-basis: 100%; }
   .container { margin: 20px auto; }
   h1 { font-size: 1.5rem; }
   .table th, .table td { padding: 10px 12px; }
