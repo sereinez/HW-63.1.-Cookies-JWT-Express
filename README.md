@@ -1,21 +1,4 @@
 
-- **PUG** — сторінки користувачів (`/users`, `/users/:userId`)
-- **EJS** — сторінки статей (`/articles`, `/articles/:articleId`)
-
-Проєкт побудований за патерном **MVC**: Model (`models/`), View (шаблони в `views/`),
-Controller (`controllers/`). Для сторінок додано **CSS-стилі** (`public/css/style.css`).
-Маршрути, що змінюють дані (`POST` / `PUT` / `DELETE`), а також `/` і повідомлення про
-помилки, як і раніше, віддають **текст** (`text/plain`).
-
-## Можливості
-
-- Сторінки на **PUG**: список користувачів і деталі користувача (зі списком його статей)
-- Сторінки на **EJS**: список статей (картки з уривком) і деталі статті
-- Спільний вигляд: навігація, адаптивна верстка, CSS-стилі
-- Автентифікація (Basic Auth) + **сесії** (`express-session`) — браузер показує вікно логіну
-- Валідація параметрів і тіла запитів, ролі `admin` / `user`, права доступу до статей
-- Логування запитів, обробка 404 та помилок
-- Сервер слухає порт **3000**
 
 ## Встановлення та запуск
 
@@ -26,20 +9,20 @@ npm install
 npm start
 ```
 
-Режим розробки (автоперезапуск): `npm run dev`.
-Для Yarn: `yarn install` та `yarn start`.
+Режим розробки (автоперезапуск): `npm run dev`. Для Yarn: `yarn install` та `yarn start`.
 
-Відкрийте в браузері <http://localhost:3000/users> — з'явиться вікно логіну.
+Відкрийте <http://localhost:3000/login>.
 
 > Якщо PowerShell забороняє запуск `npm` (помилка *execution policies*), виконайте один раз:
 > `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
 
-Необов'язкові змінні середовища:
+### Змінні середовища (необов'язкові)
 
-| Змінна           | За замовчуванням       | Опис                     |
-| ---------------- | ---------------------- | ------------------------ |
-| `PORT`           | `3000`                 | Порт сервера             |
-| `SESSION_SECRET` | `dev-secret-change-me` | Секрет для підпису сесій |
+| Змінна       | За замовчуванням             | Опис                                                         |
+| ------------ | ---------------------------- | ------------------------------------------------------------ |
+| `PORT`       | `3000`                       | Порт сервера                                                 |
+| `JWT_SECRET` | `dev-jwt-secret-change-me`   | Секрет для підпису JWT. **У реальному проєкті обов'язково змініть** |
+| `NODE_ENV`   | —                            | При `production` cookie з токеном отримує прапорець `secure` (лише HTTPS) |
 
 ## Тестові користувачі
 
@@ -48,159 +31,157 @@ npm start
 | `admin` | `admin123` | `admin` |
 | `user`  | `user123`  | `user`  |
 
-Дані зберігаються в пам'яті, тому після перезапуску повертаються до початкових.
-Паролі зберігаються у відкритому вигляді лише для навчальних цілей.
+Нових користувачів можна створити на сторінці `/register` (роль завжди `user`). Дані зберігаються
+в пам'яті, тому після перезапуску сервера повертаються до початкових.
 
 ## Структура проєкту
 
 ```
-express-templates-app/
+express-jwt-app/
 ├── package.json
 ├── README.md
 ├── public/
-│   └── css/
-│       └── style.css               # стилі для всіх сторінок
+│   ├── favicon.ico                 # іконка сайту
+│   └── css/style.css               # стилі (світла + темна тема)
 └── src/
-    ├── server.js                   # запуск сервера (порт 3000)
-    ├── app.js                      # налаштування шаблонізаторів, мідлварів, маршрутів
-    ├── models/
-    │   ├── userModel.js
-    │   └── articleModel.js
-    ├── controllers/
-    │   ├── indexController.js
-    │   ├── usersController.js      # рендерить PUG-сторінки
-    │   └── articlesController.js   # рендерить EJS-сторінки
-    ├── routes/
-    │   ├── index.js
-    │   ├── users.js
-    │   └── articles.js
+    ├── server.js                   # запуск (порт 3000)
+    ├── app.js                      # шаблонізатори, мідлвари, маршрути
+    ├── config.js                   # JWT_SECRET, терміни дії, імена cookies
+    ├── models/                     # userModel.js, articleModel.js
+    ├── controllers/                # index, auth, theme, users, articles
+    ├── routes/                     # index, auth, theme, users, articles
     ├── middlewares/
-    │   ├── logger.js
-    │   ├── textResponse.js
-    │   ├── auth.js
-    │   ├── validate.js
-    │   ├── articleAccess.js
-    │   └── errorHandler.js
+    │   ├── logger.js               # логування запитів
+    │   ├── textResponse.js         # text/plain за замовчуванням
+    │   ├── theme.js                # читає тему з cookie
+    │   ├── auth.js                 # identify, authenticate, requireRole, selfOrAdmin
+    │   ├── validate.js             # валідація параметрів і тіла запитів
+    │   ├── articleAccess.js        # права доступу до статей
+    │   └── errorHandler.js         # 404 і обробник помилок
+    ├── utils/
+    │   ├── token.js                # створення/перевірка JWT, cookie з токеном
+    │   ├── password.js             # bcrypt: хешування й перевірка паролів
+    │   └── authPage.js             # рендер сторінок входу/реєстрації, safeNext
     └── views/
-        ├── layout.pug              # базовий макет PUG
-        ├── includes/
-        │   └── nav.pug             # навігація (PUG)
-        ├── users/
-        │   ├── list.pug            # список користувачів
-        │   └── details.pug         # деталі користувача
-        ├── partials/
-        │   ├── header.ejs          # шапка + навігація (EJS)
-        │   └── footer.ejs          # футер (EJS)
-        └── articles/
-            ├── list.ejs            # список статей
-            └── details.ejs         # деталі статті
+        ├── layout.pug, includes/   # макет і навігація (PUG)
+        ├── users/, auth/           # сторінки користувачів, входу, реєстрації (PUG)
+        └── partials/, articles/    # шапка/футер і сторінки статей (EJS)
 ```
 
-## Як підключені шаблонізатори
+## 1. Статичні файли та favicon
 
-У `src/app.js`:
+- `public/favicon.ico` відправляється пакетом **`serve-favicon`** — він підключений **першим** у `app.js`,
+  тому іконка віддається швидко, з кешуванням і не потрапляє в логи.
+- У всі шаблони додано тег `<link rel="icon" href="/favicon.ico">`: `views/layout.pug` (усі PUG-сторінки)
+  та `views/partials/header.ejs` (усі EJS-сторінки). Сторінки входу й реєстрації успадковують `layout.pug`.
+- Решта статики (`/css/style.css`) віддається через `express.static`. Він підключений **до** мідлвара
+  `textResponse`, інакше CSS приходив би як `text/plain` і браузер його б проігнорував.
 
-```js
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'pug');     // PUG — за замовчуванням
-app.engine('ejs', ejs.__express);  // EJS — для файлів із розширенням .ejs
-```
+## 2. Cookies: тема оформлення
 
-Express обирає шаблонізатор за **розширенням файлу**, який передано в `res.render`:
+- `cookie-parser` розбирає заголовок `Cookie` у `req.cookies`.
+- `POST /theme` зберігає вибір у cookie `theme` на 1 рік (`SameSite=Lax`).
+  Значення перевіряється за білим списком (`light`, `dark`).
+- Мідлвар `readTheme` читає cookie на **кожному** запиті й кладе тему в `res.locals.theme`;
+  шаблони виводять `<html data-theme="...">`, а CSS перемикає змінні кольорів.
+  Підроблене значення в cookie (наприклад, `theme=<script>`) ігнорується — діє світла тема.
+- Cookie `theme` не секретна, тому `httpOnly` не потрібен (на відміну від токена).
 
-```js
-res.render('users/list.pug', {...});      // PUG
-res.render('articles/list.ejs', {...});   // EJS
-```
+## 3. JWT-авторизація
 
-Інші важливі деталі:
+1. `POST /register` або `POST /login` перевіряє дані та створює **JWT** (HS256, діє **1 годину**)
+   з payload `{ sub: id, username, role }`.
+2. Токен зберігається в cookie `token` із прапорцями **`HttpOnly`** (JavaScript на сторінці
+   не може його прочитати — захист від крадіжки через XSS) та **`SameSite=Lax`** (захист від CSRF).
+3. Мідлвар **`identify`** (глобальний) на кожному запиті шукає токен у cookie `token` або в заголовку
+   `Authorization: Bearer <token>`, перевіряє підпис і термін дії та заповнює `req.user`.
+   Недійсний або прострочений токен ігнорується, а cookie очищається.
+4. Мідлвар **`authenticate`** захищає маршрути: без дійсного токена браузер (`Accept: text/html`)
+   перенаправляється на `/login?next=...`, а API-клієнт (curl, Postman) отримує `401`.
+5. `POST /logout` видаляє cookie. JWT stateless, тому сервер не «відкликає» токен —
+   він просто перестає надсилатися браузером.
 
-- **Статичні файли** (`/css/style.css`) підключені через `express.static` **до** мідлвара
-  `textResponse`, інакше CSS віддавався б як `text/plain` і браузер його б проігнорував.
-- Для сторінок контролер явно ставить `Content-Type: text/html` (`res.type('html')`),
-  а помилки (401, 400, 403, 404) залишаються текстовими.
-- Змінна `currentUser` (без пароля) доступна у всіх шаблонах — через `res.locals`
-  у мідлварі `authenticate`; з неї навігація показує, хто увійшов.
-- Шаблони **автоматично екранують** вивід (`#{}` / `=` у PUG, `<%= %>` в EJS), тому
-  введений користувачем HTML/`<script>` відображається як текст, а не виконується.
-- У шаблони ніколи не передається пароль — контролери віддають лише `id`, `username`, `role`.
+Додатково: пароль перевіряється через `bcrypt`; на неправильний логін і неправильний пароль
+повертається однакове повідомлення; самореєстрація завжди створює роль `user`; параметр `next`
+приймає лише локальні шляхи (захист від open redirect).
 
 ## Маршрути
 
-### `/` — текст
+Формат відповіді: **HTML** — сторінка, **текст** — `text/plain`. Дії з HTML-форм (`application/x-www-form-urlencoded`)
+завершуються редіректом, а запити з `Content-Type: application/json` отримують текстову відповідь
+(для `/login` і `/register` — разом із `Token: <jwt>`, який можна використати як Bearer).
 
-| Метод | Шлях | Мідлвари  | Відповідь                                  |
-| ----- | ---- | --------- | ------------------------------------------ |
-| GET   | `/`  | логування | `200` — текстовий опис доступних маршрутів |
+### Публічні
 
-### `/users` і `/users/:userId` — PUG
+| Метод | Шлях        | Мідлвари                | Відповіді                                                            |
+| ----- | ----------- | ----------------------- | -------------------------------------------------------------------- |
+| GET   | `/`         | логування               | `200` текст — опис маршрутів                                         |
+| GET   | `/favicon.ico` | `serve-favicon`      | `200` `image/x-icon`                                                 |
+| GET   | `/login`    | —                       | `200` HTML (PUG); якщо вже увійшли — редірект на `/users`            |
+| POST  | `/login`    | `validateAuthBody`      | форма: `303` на `next` (за замовч. `/users`) + cookie `token`; API: `200` текст + токен; `400` валідація; `401` невірні дані |
+| GET   | `/register` | —                       | `200` HTML (PUG)                                                     |
+| POST  | `/register` | `validateAuthBody`      | форма: `303` на `/users` + cookie `token`; API: `201` текст + токен; `400`; `409` логін зайнятий |
+| POST  | `/logout`   | —                       | форма: `303` на `/login`; API: `200` текст; cookie `token` видаляється |
+| GET   | `/theme`    | `readTheme`             | `200` текст — поточна тема                                           |
+| POST  | `/theme`    | —                       | поле `theme` = `light` / `dark`. Форма: `303` назад (за `Referer`); API: `200` текст; `400` невідома тема |
 
-На всі маршрути діє `authenticate`.
+### Захищені (потрібен JWT)
 
-| Метод  | Шлях             | Мідлвари                                             | Відповіді                                                                       |
-| ------ | ---------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------- |
-| GET    | `/users`         | —                                                    | `200` **HTML** (`users/list.pug`): таблиця користувачів                         |
-| GET    | `/users/:userId` | `validateIdParam`                                    | `200` **HTML** (`users/details.pug`): картка + статті користувача; `400`; `404` |
-| POST   | `/users`         | `requireRole('admin')`, `validateUserBody`           | `201` текст; `400`; `403`; `409`                                                |
-| PUT    | `/users/:userId` | `validateIdParam`, `selfOrAdmin`, `validateUserBody` | `200` текст; `400`; `403`; `404`; `409`                                         |
-| DELETE | `/users/:userId` | `validateIdParam`, `requireRole('admin')`            | `200` текст; `400`; `403`; `404`                                                |
+| Метод  | Шлях                   | Мідлвари (після `authenticate`)                                             | Відповіді                                                  |
+| ------ | ---------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| GET    | `/me`                  | —                                                                           | `200` текст — дані користувача з токена; `401`             |
+| GET    | `/users`               | —                                                                           | `200` HTML (PUG) — таблиця користувачів                    |
+| GET    | `/users/:userId`       | `validateIdParam`                                                           | `200` HTML (PUG); `400`; `404`                             |
+| POST   | `/users`               | `requireRole('admin')`, `validateUserBody`                                  | `201`; `400`; `403`; `409`                                 |
+| PUT    | `/users/:userId`       | `validateIdParam`, `selfOrAdmin`, `validateUserBody`                        | `200`; `400`; `403`; `404`; `409`                          |
+| DELETE | `/users/:userId`       | `validateIdParam`, `requireRole('admin')`                                   | `200`; `400`; `403`; `404`                                 |
+| GET    | `/articles`            | —                                                                           | `200` HTML (EJS) — картки статей                           |
+| GET    | `/articles/:articleId` | `validateIdParam`, `loadArticle`                                            | `200` HTML (EJS); `400`; `404`                             |
+| POST   | `/articles`            | `validateArticleBody`                                                       | `201`; `400`                                               |
+| PUT    | `/articles/:articleId` | `validateIdParam`, `loadArticle`, `canModifyArticle`, `validateArticleBody` | `200`; `400`; `403` не автор; `404`                        |
+| DELETE | `/articles/:articleId` | `validateIdParam`, `loadArticle`, `canModifyArticle`                        | `200`; `400`; `403` не автор; `404`                        |
 
-### `/articles` і `/articles/:articleId` — EJS
+Усі захищені маршрути без токена: браузер → `302 /login?next=...`, API-клієнт → `401`.
+Неіснуючий маршрут → `404`, внутрішня помилка → `500` (текст).
 
-На всі маршрути діє `authenticate`.
+## Порядок мідлварів (`src/app.js`)
 
-| Метод  | Шлях                   | Мідлвари                                                                    | Відповіді                                                                   |
-| ------ | ---------------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| GET    | `/articles`            | —                                                                           | `200` **HTML** (`articles/list.ejs`): картки статей з уривком і автором     |
-| GET    | `/articles/:articleId` | `validateIdParam`, `loadArticle`                                            | `200` **HTML** (`articles/details.ejs`): повний текст і автор; `400`; `404` |
-| POST   | `/articles`            | `validateArticleBody`                                                       | `201` текст; `400`                                                          |
-| PUT    | `/articles/:articleId` | `validateIdParam`, `loadArticle`, `canModifyArticle`, `validateArticleBody` | `200` текст; `400`; `403` не автор; `404`                                   |
-| DELETE | `/articles/:articleId` | `validateIdParam`, `loadArticle`, `canModifyArticle`                        | `200` текст; `400`; `403` не автор; `404`                                   |
-
-### Загальні відповіді (текст)
-
-| Код   | Коли                                                             |
-| ----- | ---------------------------------------------------------------- |
-| `401` | Немає або неправильні облікові дані (`Authorization: Basic ...`) |
-| `404` | Неіснуючий маршрут                                               |
-| `500` | Внутрішня помилка сервера                                        |
-
-## Мідлвари
-
-Порядок підключення в `src/app.js` має значення:
-
-| №   | Мідлвар                            | Що робить                                                              |
-| --- | ---------------------------------- | ---------------------------------------------------------------------- |
-| 1   | `logRequests`                      | Логує `ISO-час - МЕТОД URL -> статус (мс)` для кожного запиту          |
-| 2   | `express.static`                   | Віддає CSS з `public/`                                                 |
-| 3   | `textResponse`                     | За замовчуванням ставить `Content-Type: text/plain`                    |
-| 4   | `express.json()` / `urlencoded`    | Розбір тіла запиту                                                     |
-| 5   | `express-session`                  | Сесії (cookie, 1 година)                                               |
-| 6   | `authenticate`                     | Сесія → Basic-заголовок; записує `req.user` і `res.locals.currentUser` |
-|     | `requireRole`, `selfOrAdmin`       | Перевірка ролі / власного профілю                                      |
-|     | `validateIdParam`, `validate*Body` | Валідація параметрів і тіла запитів                                    |
-|     | `loadArticle`, `canModifyArticle`  | Завантаження статті та перевірка прав автора                           |
-| 7   | `notFound` → `errorHandler`        | 404 та централізована обробка помилок (останніми)                      |
+| №  | Мідлвар                   | Призначення                                        |
+| -- | ------------------------- | -------------------------------------------------- |
+| 1  | `serve-favicon`           | віддає `favicon.ico`                               |
+| 2  | `logRequests`             | логування запитів                                  |
+| 3  | `express.static`          | CSS з `public/` (до `textResponse`!)               |
+| 4  | `textResponse`            | `text/plain` за замовчуванням                      |
+| 5  | `express.json` / `urlencoded` | розбір тіла запиту (JSON і форм)               |
+| 6  | `cookieParser`            | `req.cookies`                                      |
+| 7  | `readTheme`               | `res.locals.theme` з cookie                        |
+| 8  | `identify`                | JWT → `req.user`, `res.locals.currentUser`         |
+| 9  | маршрути → `notFound` → `errorHandler` | обробка запитів, 404, помилки         |
 
 ## Приклади
 
-Сторінки відкривайте в браузері (логін `admin` / `admin123`):
+Сторінки: відкрийте <http://localhost:3000/login>, увійдіть як `admin` / `admin123`, перемикайте тему кнопкою
+у верхньому правому куті — вибір збережеться після перезавантаження сторінки та перезапуску браузера.
 
-- <http://localhost:3000/users>
-- <http://localhost:3000/users/2>
-- <http://localhost:3000/articles>
-- <http://localhost:3000/articles/1>
-
-Запити, що змінюють дані (у **PowerShell** використовуйте `curl.exe`):
+Запити через API (у **PowerShell** використовуйте `curl.exe`):
 
 ```bash
-# Створити статтю (текстова відповідь)
-curl.exe -u user:user123 -X POST http://localhost:3000/articles -H "Content-Type: application/json" -d "{\"title\":\"Моя стаття\",\"content\":\"Текст\"}"
+# Вхід: у відповіді буде токен
+curl.exe -X POST http://localhost:3000/login -H "Content-Type: application/json" -d "{\"username\":\"admin\",\"password\":\"admin123\"}"
 
-# Створити користувача (лише admin)
-curl.exe -u admin:admin123 -X POST http://localhost:3000/users -H "Content-Type: application/json" -d "{\"username\":\"ivan\",\"password\":\"1234\"}"
+# Захищений маршрут із токеном
+curl.exe http://localhost:3000/me -H "Authorization: Bearer <ваш-токен>"
+
+# Без токена -> 401
+curl.exe -i http://localhost:3000/users
+
+# Реєстрація
+curl.exe -X POST http://localhost:3000/register -H "Content-Type: application/json" -d "{\"username\":\"ivan\",\"password\":\"pass1234\"}"
+
+# Зберегти тему (відповідь міститиме Set-Cookie: theme=dark)
+curl.exe -i -X POST http://localhost:3000/theme -H "Content-Type: application/json" -d "{\"theme\":\"dark\"}"
 ```
 
-Після створення оновіть сторінки `/articles` або `/users` — нові записи з'являться у списку.
-
+Перевірити cookie у браузері: DevTools → *Application* → *Cookies*. У `token` увімкнено `HttpOnly`,
+а `theme` видно й у JS.
 
